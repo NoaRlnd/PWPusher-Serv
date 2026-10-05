@@ -2,7 +2,7 @@ import { User } from "../models/user.model.js";
 
 const registerUser = async (req, res) => {
     try {
-        const { username, email, password} = req.body;
+        const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({ message: "les champs doivent être remplis"});
@@ -24,7 +24,7 @@ const registerUser = async (req, res) => {
             message: "user enregistré",
             user: { id: user._id, email: user.email, username: user.username}
         });
-        
+
     } catch (error) {
         res.status(500).json({ message: "internal serv error", error: error.message });
     }

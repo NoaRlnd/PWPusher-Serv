@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import argon2 from "argon2";
 
 const userSchema = new Schema(
     {
@@ -21,8 +22,14 @@ const userSchema = new Schema(
 
         MFA: {
             type: Boolean,
-            required: true,
+            required: false,
+        },
+
+        twoFAsecret: {
+            type: String,
+            required: false,
         }
+
     },
 
     {
@@ -32,11 +39,11 @@ const userSchema = new Schema(
 
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await argon2.hash(this.password)
 });
 
 userSchema.methods.comparePassword = async function (password) {
-    return await bcrypt.compare(password, this.password)
-}
+    return await bcrypt.compare(this.password, password) // "this.password" = plaintext | "password" = hash
+};
 
 export const User = mongoose.model("User", userSchema)
