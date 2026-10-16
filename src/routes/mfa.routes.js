@@ -1,11 +1,11 @@
 import { Router } from "express";
-import passport from "passport";
+import { deleteMFA, resetMFA, setupMFA, verifyMFA } from "../controllers/mfa.controller.js";
 
 const router = Router();
 
-// 2fa setup            -post
-// verify token (otp)   -get
-// reset                -post
-// auth status  -get
+router.route('/setup').get(setupMFA);
+router.route('/verify').get(verifyMFA); // OTP ?
+router.route('/reset').patch(resetMFA);
+router.route('/delete').delete(deleteMFA);
 
 export default router;

@@ -1,0 +1,9 @@
+    -cookies- 
+pour utiliser cookie-parser :
+res.cookies / res.signedCookies
+
+les cookies signés faut les inititialiser correctement dans app.js :
+app.use(cookieParser('SecretPourSignature'))
+
+et faut les ditribuer en mode signé :
+res.cookie("maxAge", "5minutes", { maxAge: 60000 * 5, signed: true });

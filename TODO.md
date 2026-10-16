@@ -5,9 +5,11 @@ comprends API, auth, MFA, key gen et BDD (logs aussi ?)
 ### Portail ID
 
 - [ ] auth et MFA  
-  - [ ] models  
+  - [ ] model  
+    - [ ] ajout de secrets de récupération  
   - [ ] routes  
   - [ ] controllers  
+    - [ ] gestion des secrets de récupération  
 
 ### Back-end
 

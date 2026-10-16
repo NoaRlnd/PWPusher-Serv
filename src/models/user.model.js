@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import bcrypt from "bcrypt";
 import argon2 from "argon2";
 
 const userSchema = new Schema(
@@ -9,7 +8,7 @@ const userSchema = new Schema(
             type: String,
             required: true,
             minLength: 8,
-            maxLength: 50,
+            maxLength: 150,
         },
 
         email: {
@@ -18,16 +17,27 @@ const userSchema = new Schema(
             unique: true,
             lowercase: true,
             trim: true,
+            maxLength: 254,
         },
 
         MFA: {
             type: Boolean,
             required: false,
+            default: false,
         },
 
-        twoFAsecret: {
+        MFAsecret: {
             type: String,
             required: false,
+        },
+
+        APIkey: {
+            type: String,
+            minLength: 40,
+            maxLength: 64,
+            uppercase: true,
+            required: false,
+            trim: true,
         }
 
     },
@@ -43,7 +53,7 @@ userSchema.pre("save", async function () {
 });
 
 userSchema.methods.comparePassword = async function (password) {
-    return await bcrypt.compare(this.password, password) // "this.password" = plaintext | "password" = hash
+    return await argon2.verify(this.password, password) // "this.password" = hash | "password" = plaintext
 };
 
 export const User = mongoose.model("User", userSchema)
