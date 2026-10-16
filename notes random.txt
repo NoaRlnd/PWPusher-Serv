@@ -7,3 +7,26 @@ app.use(cookieParser('SecretPourSignature'))
 
 et faut les ditribuer en mode signé :
 res.cookie("maxAge", "5minutes", { maxAge: 60000 * 5, signed: true });
+
+{
+    "email": "noa.roland@coldmail.com",
+    "password": "12345678"
+}
+
+{
+    "email": "david.laforge@lukeWarmmail.com",
+    "password": "98765432"
+}
+
+
+vérifier le format des mails
+mettre ù ( //ù ) dans les commentaire qui doivent être repris pendant l'implémentation de l'API histoire de les [ctrl + f] plus facilement pour reprendre les modifs à faire.
+jwt header : 
+	issuer (quel est la source du token, ex : oauth)
+	sub (sujet du token donc le userID typiquement)
+	exp (expiration du token en unix)
+	iat (quand le token à été issued par le serv en unix)
+	email
+	role (ADMIN, SUPER-ADMIN, USER, CONSULTANT..)
+apprendre à faire des refresh token
+associer MAC + IP au session ID
