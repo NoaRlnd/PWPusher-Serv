@@ -82,17 +82,18 @@ const verifyMFA = async (req, res) => {
             token: token,
         });
 
-        if(verified) { //ù il faut s'occuper des refresh token
-            const jwtToken = jwt.sign(
-                { email: req.session.user.email },  // (pas sûr de l'info) le payload est entre accolades et les headers jsp
-                process.env.JWT_SECRET,
-                { expiresIn: 60 * 5}, //ù 5 min mais idéalement faudra le passer à une minute quand y'aura des refresh token
-                { role: "USER" },
-                { userID: req.session.id }
-            );
+        if(verified) { //ù passer en token asymétrique dans le futur
+            // const accessToken = jwt.sign(
+            //     { email: req.session.user.email },  
+            //     process.env.JWT_PRIVATE,            // clé privé access token
+            //     { algorithm: "HS384" },             // symétrique
+            //     { expiresIn: 60 * 5},               //ù 5 min mais idéalement faudra le passer à 2-3 minutes quand y'aura des refresh token
+            //     { role: "USER" },
+            //     { userID: req.session.id }          // le secret n'est pas en parenthèse
+            // );
             return res.status(200).json({
                 message: "vérif MFA réussie", 
-                token: jwtToken                 //ù adapter les header du jwt en fonction des infos dans le bloc notes
+                token: accessToken                  //ù adapter les header du jwt en fonction des infos dans le bloc notes
             });
         } else {
             res.status(400).json({

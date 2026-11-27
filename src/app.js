@@ -6,6 +6,7 @@ import cors from "cors";
 import { json } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+// importer une fonction
 
 dotenv.config({
     path: './.env' // ../ marche pas il faut mettre qu'un point
@@ -24,7 +25,7 @@ app.use(session({
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        cookie: { maxAge: 60000 * 15 } //ù penser à ajouter dans l'objet "secure: true" et "sameSite: "strict"" pour forcer le https et éviter les attaques CSRF
+        cookie: { maxAge: 60000 * 15 } //ù penser à ajouter dans l'objet "secure: true" et httpOnly et "sameSite: "strict"" pour forcer le https et éviter les attaques CSRF
     }));
 
 app.use(cookieParser(process.env.COOKIE_SIGNING))

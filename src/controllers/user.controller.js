@@ -1,6 +1,9 @@
-import { sessionCheck } from "../config/constants.js";
+import { sessionCheck } from "../config/constants.js"; // à supprimer un jour
 import { User } from "../models/user.model.js";
-import crypto from "crypto";
+import crypto from "crypto"; // j'utilise à aucun moment crypto non ??
+import jwt from "jsonwebtoken"; // JOSE le remplace
+import { createMlKem1024 } from "mlkem";
+import { generateKeyPair, GeneralSign, generalVerify } from "jose";
 
 const registerUser = async (req, res) => {
     try {
@@ -39,12 +42,16 @@ const authStatus = async (req, res) => {
 
     try {
 
-        const result = sessionCheck(req.session.id, req.sessionStore.sessions);
-        if(result !== "good") {
-            return res.status(result.statusCode).json({
-                message: result.message,
-            });
-        }
+        // const result = sessionCheck(req.session.accessToken, req.sessionStore.sessions);
+        // if(result !== "good") {
+        //     throw {errCode: result.statusCode, mess: "erreur session", errMess: result.message }
+        // }
+
+        const { accessToken } = req.body;
+
+        jwt.verify(accessToken, process.env.JWT_PUBLIC, (err) => {
+            if (err) throw { thyErr: err, thyMessage: "non-autorisé", thyStatusCode: 401 }
+        });
 
         let APIkeyOn = true;
         if(!req.session.user.APIkey) {
@@ -59,9 +66,9 @@ const authStatus = async (req, res) => {
         });
         
     } catch (error) {
-        res.status(500).json({
-            message: "internal serv error",
-            error: error || "error",
+        res.status(error.thyStatusCode || 500).json({               //ù faire une fonction au lieu de cette merde avec les "||" 
+            message: error.thyMessage || "internal serv error",
+            error: error.thyErr || "error",
         });
     }
 };
@@ -69,9 +76,9 @@ const authStatus = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         
-        const { email, password } = req.body;
+        const { email, password, pubK } = req.body; // rajouter le PID après
 
-        if(!email || !password) return res.status(400).json({
+        if(!email || !password || !pubK) return res.status(400).json({
             message: "les 2 champs n'ont pas été reçus"
         });
 
@@ -88,20 +95,28 @@ const loginUser = async (req, res) => {
             message: "crédentiels invalides"
         });
 
-        // mettre dans session.user seulement l'essentiel
-        req.session.user = user; // dans session.user il y a : user: { _id: new ObjectId('6ac...'), password: 'le mdp en argon2', email: 'email', MFA: false, createdAt: format heure, updatedAt: format heure, __v: 0}
+
+        req.session.user = user._id                      // dans session.user il y a : user: { _id: new ObjectId('6ac...'), password: 'le mdp en argon2', email: 'email', MFA: false, createdAt: format heure, updatedAt: format heure, __v: 0}
         req.session.visited = true;
 
         // envoie le cookie max age (qui sert à rien btw)
-        res.cookie("maxAge", "5minutes", { maxAge: 60000 * 5, signed: true});
+        // res.cookie("maxAge", "5minutes", { maxAge: 60000 * 5, signed: true});
 
-        res.status(200).json({
+        const token = jwt.sign(
+            { email: user.email, role: "user", sub: user._id, iss: "PWP-auth-server" },  //ù penser à ajouter aud et mettre une logique de vérif dérrière iss, role et aud
+            process.env.JWT_PRIVATE,
+            { expiresIn: 60 * 5, algorithm: "ES384" }
+        );
+
+
+        res.status(200).json({ 
             message: "user connecté",
             user: {
-                id: req.session.user._id,
-                email: req.session.user.email,
-                MFA: req.session.user.MFA,
-                debug: req.session
+                id: req.session.user,
+                email: user.email,
+                MFA: user.MFA,
+                debug: req.session,
+                token: token
             }
         });
 
@@ -206,14 +221,6 @@ const generateApiKey = async (req, res) => {
         if(user.APIkey) return res.status(409).json({
             message: "vous possédez déjà une clé API",
         });
-
-        function generateApiKeyBase64(length = 48) {
-            return crypto.randomBytes(length)
-                .toString('base64')
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=/g, '');
-        };
         
         const apiKey = generateApiKeyBase64(48);
 
@@ -311,6 +318,14 @@ const deleteApiKey = async (req, res) => { // marche pas pcq ma tourmente n'est 
     }
 
 }
+
+function generateApiKeyBase64(length = 48) {
+    return crypto.randomBytes(length)
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+};
 
 // ajouter delete key
 

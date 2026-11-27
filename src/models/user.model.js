@@ -1,6 +1,22 @@
 import mongoose, { Schema } from "mongoose";
 import argon2 from "argon2";
 
+const keyShema = new Schema(
+    {
+
+        keyInfo: {
+            type: String,
+            maxLength: 30
+        },
+
+        keyPart: {
+            type: Object,
+            unique: true
+        }
+
+    }
+);
+
 const userSchema = new Schema(
     {
 
@@ -8,7 +24,7 @@ const userSchema = new Schema(
             type: String,
             required: true,
             minLength: 8,
-            maxLength: 150,
+            maxLength: 150
         },
 
         email: {
@@ -17,18 +33,18 @@ const userSchema = new Schema(
             unique: true,
             lowercase: true,
             trim: true,
-            maxLength: 254,
+            maxLength: 254
         },
 
         MFA: {
             type: Boolean,
             required: false,
-            default: false,
+            default: false
         },
 
         MFAsecret: {
             type: String,
-            required: false,
+            required: false
         },
 
         APIkey: {
@@ -37,15 +53,17 @@ const userSchema = new Schema(
             maxLength: 64,
             uppercase: true,
             required: false,
-            trim: true,
-        }
+            trim: true
+        },
+
+        keyScrap: [keyShema]
 
     },
 
     {
         timestamps: true
     }
-)
+);
 
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
